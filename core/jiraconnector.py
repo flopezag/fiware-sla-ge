@@ -58,7 +58,7 @@ class Jira:
 
         changelog = a_issue.changelog
 
-        print(a_issue.key)
+        # print(a_issue.key)
 
         progressed = [item.created for item in [history for history in changelog.histories]
                       if (item.items[0].field == 'status'
@@ -139,23 +139,23 @@ class Jira:
             number_of_items = df_aux['time_resolve'].count()
 
             # I want to obtain the mean of the resolution time and response time
-            t1 = df_aux["time_resolve"].mean()
-            t2 = df_aux['time_response'].mean()
+            p_time_resolve = df_aux["time_resolve"].mean()
+            p_time_response = df_aux['time_response'].mean()
 
             logger.info('Enabler: {}, '
                         'time_response_mean (days): {}, '
                         'time_resolve_mean (days): {}, '
                         'number of tickets: {}'
-                        .format(enablers[i], t2, t1, number_of_items))
+                        .format(enablers[i], p_time_response, p_time_resolve, number_of_items))
 
-            # solution_list = {
-            #    'FIWARE Lab node': enablers[i],
-            #    'Number Issues': number_time_resolve,
-            #    '% Issues responded <24h': p_time_response,
-            #    '% Issues resolved <2d': p_time_resolve
-            # }
+            solution_list = {
+               'FIWARE GE': enablers[i],
+               'Number of tickets': number_of_items,
+               '% Issues responded <24h': p_time_response,
+               '% Issues resolved <2d': p_time_resolve
+            }
 
-            # solution.append(solution_list)
+            solution.append(solution_list)
 
         for i in range(0, len(enabler_without_tickets)):
             logger.info('Enabler: {}, '
@@ -164,10 +164,19 @@ class Jira:
                         'number of tickets: 0'
                         .format(enabler_without_tickets[i]))
 
-        # solution_df = pd.DataFrame(solution)
+            solution_list = {
+               'FIWARE GE': enabler_without_tickets[i],
+               'Number of tickets': 0,
+               '% Issues responded <24h': 0,
+               '% Issues resolved <2d': 0
+            }
 
-        # return solution_df
-        return ()
+            solution.append(solution_list)
+
+        solution_df = pd.DataFrame(solution)
+
+        return solution_df
+        # return ()
 
     def get_issues(self):
         block_size = 100

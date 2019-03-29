@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env /Users/fernandolopez/Documents/workspace/python/fiware-sla-ge/env/bin/python
 # -*- encoding: utf-8 -*-
 ##
 # Copyright 2017 FIWARE Foundation, e.V.
@@ -32,10 +32,12 @@ if __name__ == "__main__":
 
     solution_data = jira_instance.calculate_statistics(result)
 
-    #keystone = Keystone()
+    keystone = Keystone()
 
-    #token = keystone.get_token()
+    token = keystone.get_token()
 
-    #monasca = Monasca(token)
+    monasca = Monasca(token)
 
-    #monasca.send_meassurements(solution_data)
+    monasca.send_measurements(solution_data)
+
+    print(solution_data)

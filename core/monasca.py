@@ -39,13 +39,13 @@ class Monasca:
 
         self.milli_sec = int(round(time.time() * 1000))
 
-    def send_meassurements(self, meassurements):
-        logger.info('Sending meassurements to Monasca...')
+    def send_measurements(self, measurements):
+        logger.info('Sending measurements to Monasca...')
 
         d = list()
 
         d = [
-            self.payload_meassure(row) for row in meassurements.values
+            self.payload_measure(row) for row in measurements.values
         ]
 
         flatten_payload = [item for sublist in d for item in sublist]
@@ -71,35 +71,35 @@ class Monasca:
             sys.exit(1)
 
         logger.info(
-            'Meassurements sent to Monasca, status code: {}'.format(r.status_code))
+            'Measurements sent to Monasca, status code: {}'.format(r.status_code))
 
-    def payload_meassure(self, meassure):
-        '''
-        Obtain the Monasca JSON meassure message for a specific row in a dataframe.
-        '''
+    def payload_measure(self, measure):
+        """
+        Obtain the Monasca JSON measure message for a specific row in a dataframe.
+        """
         result = [
             {
-                "name": "region.ticket_response_time",
+                "name": "ge.ticket_response_time",
                 "dimensions": {
-                    "region": meassure[2],
-                    "source": "fiware-sla"
+                    "ge": measure[2],
+                    "source": "fiware-ge-sla"
                 },
                 "timestamp": self.milli_sec,
-                "value": meassure[1],
+                "value": measure[1],
                 "value_meta": {
-                    "number_issues": meassure[3]
+                    "number_issues": measure[3]
                 }
             },
             {
-                "name": "region.ticket_resolve_time",
+                "name": "ge.ticket_resolve_time",
                 "dimensions": {
-                    "region": meassure[2],
-                    "source": "fiware-sla"
+                    "ge": measure[2],
+                    "source": "fiware-ge-sla"
                 },
                 "timestamp": self.milli_sec,
-                "value": meassure[0],
+                "value": measure[0],
                 "value_meta": {
-                    "number_issues": meassure[3]
+                    "number_issues": measure[3]
                 }
             }
         ]

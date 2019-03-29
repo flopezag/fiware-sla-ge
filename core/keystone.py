@@ -46,11 +46,6 @@ class Keystone:
                             }
                         }
                     }
-                },
-                "scope": {
-                    "project": {
-                        "id": OS_PROJECT_ID
-                    }
                 }
             }
         }
