@@ -18,13 +18,11 @@
 ##
 
 import requests
-import json
 import sys
 import time
 from config.settings import OS_MONASCA_URL
-from config.log import logger
-from core.keystone import Keystone
-
+# from config.log import logger
+from logging import info, debug, error
 
 __author__ = 'fla'
 
@@ -40,9 +38,7 @@ class Monasca:
         self.milli_sec = int(round(time.time() * 1000))
 
     def send_measurements(self, measurements):
-        logger.info('Sending measurements to Monasca...')
-
-        d = list()
+        info('Sending measurements to Monasca...')
 
         d = [
             self.payload_measure(row) for row in measurements.values
@@ -50,7 +46,7 @@ class Monasca:
 
         flatten_payload = [item for sublist in d for item in sublist]
 
-        logger.debug('Payload: {}'.format(flatten_payload))
+        debug('Payload: {}'.format(flatten_payload))
 
         try:
             r = requests.post(self.url, json=flatten_payload,
@@ -58,19 +54,19 @@ class Monasca:
 
             r.raise_for_status()
         except requests.exceptions.HTTPError as errh:
-            logger.error("Http Error: {}".format(errh))
+            error("Http Error: {}".format(errh))
             sys.exit(1)
         except requests.exceptions.ConnectionError as errc:
-            logger.error("Error Connecting: {}".format(errc))
+            error("Error Connecting: {}".format(errc))
             sys.exit(1)
         except requests.exceptions.Timeout as errt:
-            logger.error("Timeout Error: {}".format(errt))
+            error("Timeout Error: {}".format(errt))
             sys.exit(1)
         except requests.exceptions.RequestException as err:
-            logger.error("OOps: Something Else: {}".format(err))
+            error("OOps: Something Else: {}".format(err))
             sys.exit(1)
 
-        logger.info(
+        info(
             'Measurements sent to Monasca, status code: {}'.format(r.status_code))
 
     def payload_measure(self, measure):
@@ -85,10 +81,7 @@ class Monasca:
                     "source": "fiware-ge-sla"
                 },
                 "timestamp": self.milli_sec,
-                "value": measure[1],
-                "value_meta": {
-                    "number_issues": measure[3]
-                }
+                "value": measure[1]
             },
             {
                 "name": "ge.ticket_resolve_time",
@@ -97,10 +90,16 @@ class Monasca:
                     "source": "fiware-ge-sla"
                 },
                 "timestamp": self.milli_sec,
-                "value": measure[0],
-                "value_meta": {
-                    "number_issues": measure[3]
-                }
+                "value": measure[0]
+            },
+            {
+                "name": "ge.tickets_count",
+                "dimensions": {
+                    "ge": measure[2],
+                    "source": "fiware-ge-sla"
+                },
+                "timestamp": self.milli_sec,
+                "value": measure[3]
             }
         ]
 

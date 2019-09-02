@@ -20,12 +20,11 @@
 from jira import JIRA
 from dateutil import parser
 import pytz
-import datetime
-import pandas as pd
+from datetime import datetime
+from pandas import DataFrame
 import re
-from core.SLATime import SLATime
 from config.settings import JIRA_USER, JIRA_PASSWORD, JIRA_QUERY, JIRA_URL
-from config.log import logger
+from logging import info, debug
 
 
 __author__ = 'fla'
@@ -51,14 +50,11 @@ class Jira:
         self.total_issues = list()
 
     def filter_issue(self, a_issue):
-        # print(a_issue.key)
         created = a_issue.fields.created
         resolved = a_issue.fields.resolutiondate
         enabler = getattr(a_issue.fields, self.nameMap['HD-Enabler']).value
 
         changelog = a_issue.changelog
-
-        # print(a_issue.key)
 
         progressed = [item.created for item in [history for history in changelog.histories]
                       if (item.items[0].field == 'status'
@@ -90,7 +86,7 @@ class Jira:
 
         t_created = parser.parse(created)
 
-        t_now = pytz.utc.localize(datetime.datetime.utcnow())
+        t_now = pytz.utc.localize(datetime.utcnow())
 
         try:
             t_progressed = parser.parse(progressed[0])
@@ -112,17 +108,15 @@ class Jira:
             # Translate the different to number of days 60*60*24 = 86400
             time_resolve = (t_now - t_created).total_seconds()/86400
 
-        print(a_issue.key,
-              unicode(time_response),
-              unicode(time_resolve),
-              time_resolve >= time_response)
+        debug("{0} {1:.3f} {2:.3f} {3}"
+              .format(a_issue.key, time_response, time_resolve, time_resolve >= time_response))
 
         return {'enabler': enabler, 'time_response': time_response, 'time_resolve': time_resolve}
 
     def calculate_statistics(self, a_list):
         solution = list()
 
-        df = pd.DataFrame(a_list)
+        df = DataFrame(a_list)
 
         requested_enabler = Jira.get_enablers(JIRA_QUERY)
 
@@ -130,7 +124,7 @@ class Jira:
 
         enabler_without_tickets = Jira.intersection(requested_enabler, enablers)
 
-        logger.debug('Dimension of the Dataframe: ({}, {})'.format(
+        debug('Dimension of the Dataframe: ({}, {})'.format(
             df.shape[0], df.shape[1]))
 
         for i in range(0, len(enablers)):
@@ -142,7 +136,7 @@ class Jira:
             p_time_resolve = df_aux["time_resolve"].mean()
             p_time_response = df_aux['time_response'].mean()
 
-            logger.info('Enabler: {}, '
+            info('Enabler: {}, '
                         'time_response_mean (days): {}, '
                         'time_resolve_mean (days): {}, '
                         'number of tickets: {}'
@@ -158,7 +152,7 @@ class Jira:
             solution.append(solution_list)
 
         for i in range(0, len(enabler_without_tickets)):
-            logger.info('Enabler: {}, '
+            info('Enabler: {}, '
                         'time_response_mean (days): 0, '
                         'time_resolve_mean (days): 0, '
                         'number of tickets: 0'
@@ -173,10 +167,9 @@ class Jira:
 
             solution.append(solution_list)
 
-        solution_df = pd.DataFrame(solution)
+        solution_df = DataFrame(solution)
 
         return solution_df
-        # return ()
 
     def get_issues(self):
         block_size = 100
@@ -199,10 +192,10 @@ class Jira:
 
             block_num += 1
 
-            logger.info(
+            info(
                 "Processing block of JIRA issues number: {}".format(block_num))
 
-        logger.info("Total number of JIRA issues: {}".format(
+        info("Total number of JIRA issues: {}".format(
             len(self.total_issues)))
 
         return self.total_issues

@@ -59,7 +59,7 @@ class SLATime:
         a_day = timedelta(days=1)
         a_day_total_seconds = a_day.total_seconds()
 
-        # We discard the first and last day due to we calcutate the diff in the other methods.
+        # We discard the first and last day due to we calculate the diff in the other methods.
         first_date_new = \
             first_date.replace(day=first_date.day, hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
@@ -85,11 +85,11 @@ class SLATime:
         return working
 
     @staticmethod
-    def office_time_between(a, b,
+    def office_time_between(t1, t2,
                             start=timedelta(hours=8, minutes=0, seconds=0, milliseconds=0),
                             stop=timedelta(hours=17, minutes=0, seconds=0, milliseconds=0)):
         """
-        Return the total office time between `a` and `b` as a timedelta
+        Return the total office time between `t1` and `t2` as a timedelta
         object. Office time consists of weekdays from `start` to `stop`
         (default: 08:00 to 17:00).
         """
@@ -97,8 +97,8 @@ class SLATime:
         assert(zero <= start <= stop <= timedelta(1))
 
         # Adjust the date to the working date
-        a_delta = SLATime.adjust_time_delta(t=a, start=start, stop=stop)
-        b_delta = SLATime.adjust_time_delta(t=b, start=start, stop=stop)
+        a_delta = SLATime.adjust_time_delta(t=t1, start=start, stop=stop)
+        b_delta = SLATime.adjust_time_delta(t=t2, start=start, stop=stop)
 
         if a_delta.date() == b_delta.date():
             # It is in the same day, therefore just a difference of the two dates
@@ -109,7 +109,7 @@ class SLATime:
 
             # Get the number of complete days between a and b without weekend days
             office_day = stop - start
-            complete_working_date = SLATime.full_in_between_working_days(a, b)
+            complete_working_date = SLATime.full_in_between_working_days(t1, t2)
 
             # Calculate the work activity the first and last days
             stop_delta = a_delta

@@ -20,6 +20,7 @@
 from core.jiraconnector import Jira
 from core.keystone import Keystone
 from core.monasca import Monasca
+from logging import info, error
 
 __author__ = 'fla'
 
@@ -31,7 +32,7 @@ if __name__ == "__main__":
     result = map(jira_instance.filter_issue, issues)
 
     solution_data = jira_instance.calculate_statistics(result)
-
+    '''
     keystone = Keystone()
 
     token = keystone.get_token()
@@ -39,5 +40,5 @@ if __name__ == "__main__":
     monasca = Monasca(token)
 
     monasca.send_measurements(solution_data)
-
-    print(solution_data)
+    '''
+    info(solution_data)

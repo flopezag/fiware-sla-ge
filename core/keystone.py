@@ -17,12 +17,12 @@
 # under the License.
 ##
 
-import requests
-import json
-import sys
-from config.settings import OS_PROJECT_ID, OS_USERNAME, OS_PASSWORD, OS_AUTH_URL, OS_MONASCA_URL
-from config.log import logger
-
+from requests import post
+from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
+from sys import exit
+from config.settings import OS_USERNAME, OS_PASSWORD, OS_AUTH_URL
+# from config.log import logger
+from logging import info, debug, error
 
 __author__ = 'fla'
 
@@ -53,32 +53,33 @@ class Keystone:
         self.headers = {'Content-Type': 'application/json'}
 
     def get_token(self):
-        logger.info('Requesting token to Keytone...')
+        info('Requesting token to Keytone...')
+
+        r = ''
 
         try:
-            r = requests.post(self.url, json=self.payload,
-                              headers=self.headers)
+            r = post(self.url, json=self.payload, headers=self.headers)
 
             r.raise_for_status()
-        except requests.exceptions.HTTPError as errh:
-            logger.error("Http Error: {}".format(errh))
-            sys.exit(1)
-        except requests.exceptions.ConnectionError as errc:
-            logger.error("Error Connecting: {}".format(errc))
-            sys.exit(1)
-        except requests.exceptions.Timeout as errt:
-            logger.error("Timeout Error: {}".format(errt))
-            sys.exit(1)
-        except requests.exceptions.RequestException as err:
-            logger.error("OOps: Something Else: {}".format(err))
-            sys.exit(1)
+        except HTTPError as errh:
+            error("Http Error: {}".format(errh))
+            exit(1)
+        except ConnectionError as errc:
+            error("Error Connecting: {}".format(errc))
+            exit(1)
+        except Timeout as errt:
+            error("Timeout Error: {}".format(errt))
+            exit(1)
+        except RequestException as err:
+            error("OOps: Something Else: {}".format(err))
+            exit(1)
 
-        token = r.headers['X-Subject-Token']
+        new_token = r.headers['X-Subject-Token']
 
-        logger.info('Token obtained, status code: {}'.format(r.status_code))
-        logger.debug('Token: {}'.format(token))
+        info('Token obtained, status code: {}'.format(r.status_code))
+        debug('Token: {}'.format(new_token))
 
-        return token
+        return new_token
 
 
 if __name__ == "__main__":

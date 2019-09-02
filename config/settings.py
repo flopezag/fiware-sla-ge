@@ -17,9 +17,11 @@
 # under the License.
 ##
 
-from configparser import ConfigParser
+from configparser import ConfigParser, NoSectionError
 import logging
-import os.path
+from os import environ
+from os.path import dirname, join, abspath
+
 
 __author__ = 'fla'
 
@@ -40,12 +42,12 @@ name = 'fiware-sla'
 
 cfg_dir = "/etc/fiware.d"
 
-if os.environ.get("SLA_SETTINGS_FILE"):
-    cfg_filename = os.environ.get("SLA_SETTINGS_FILE")
-    cfg_dir = os.path.dirname(cfg_filename)
+if environ.get("SLA_SETTINGS_FILE"):
+    cfg_filename = environ.get("SLA_SETTINGS_FILE")
+    cfg_dir = dirname(cfg_filename)
 
 else:
-    cfg_filename = os.path.join(cfg_dir, '%s.ini' % name)
+    cfg_filename = join(cfg_dir, '%s.ini' % name)
 
 Config = ConfigParser()
 
@@ -63,16 +65,21 @@ def check_log_level(loglevel):
 
 
 def config_section_map(section):
-    dict1 = {}
-    options = Config.options(section)
+    dict1 = dict()
+    options = list()
+
+    try:
+        options = Config.options(section)
+    except NoSectionError:
+        print("ERROR, no section found: %s" % section)
+        exit(1)
+
     for option in options:
-        try:
-            dict1[option] = Config.get(section, option)
-            if dict1[option] == -1:
-                print("skip: %s" % option)
-        except Exception:
-            print("exception on %s!" % option)
-            dict1[option] = None
+        dict1[option] = Config.get(section, option)
+
+        if dict1[option] == -1:
+            print("WARNING, skip: %s" % option)
+
     return dict1
 
 
@@ -86,9 +93,10 @@ if Config.sections():
     JIRA_URL = auth_section['url']
 
     # Data from Log section
-    log_section = config_section_map("log")
+    log_section = config_section_map("logging")
 
-    LOG_LEVEL = check_log_level(log_section['loglevel'])
+    LOGGING_LEVEL = check_log_level(log_section['level'])
+    LOGGING_FILE = log_section['file']
 
     # Data from OpenStack section
     openstack_section = config_section_map("openstack")
@@ -108,6 +116,10 @@ else:
 
 # Settings file is inside Basics directory, therefore I have to go back to the parent directory
 # to have the Code Home directory
-CODE_HOME = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOG_HOME = os.path.join(CODE_HOME, 'log')
-LOG_FILE = 'SLA-GE-Measurement.log'
+CODE_HOME = dirname(dirname(abspath(__file__)))
+LOGHOME = join(CODE_HOME, 'log')
+
+# Initialize the logging system
+from config.config_logging import LoggingConf
+
+LoggingConf()
