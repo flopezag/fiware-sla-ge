@@ -25,6 +25,8 @@ from logging import info, error
 __author__ = 'fla'
 
 if __name__ == "__main__":
+    info("Starting process...")
+
     jira_instance = Jira()
 
     issues = jira_instance.get_issues()
@@ -32,7 +34,7 @@ if __name__ == "__main__":
     result = map(jira_instance.filter_issue, issues)
 
     solution_data = jira_instance.calculate_statistics(result)
-    '''
+
     keystone = Keystone()
 
     token = keystone.get_token()
@@ -40,5 +42,7 @@ if __name__ == "__main__":
     monasca = Monasca(token)
 
     monasca.send_measurements(solution_data)
-    '''
+
     info(solution_data)
+
+    info("Finished...")
