@@ -43,6 +43,4 @@ if __name__ == "__main__":
 
     monasca.send_measurements(solution_data)
 
-    info(solution_data)
-
     info("Finished...")

@@ -40,10 +40,16 @@ class Monasca:
     def send_measurements(self, measurements):
         info('Sending measurements to Monasca...')
 
-        d = [
-            self.payload_measure(row) for row in measurements.values
-        ]
+        measurements['FINAL'] = measurements.apply(lambda row: self.payload_measure([row['% Issues resolved <2d'],
+                                                                                     row['% Issues responded <24h'],
+                                                                                     row['FIWARE GE'],
+                                                                                     row['Number of tickets']
+                                                                                     ]), axis=1)
 
+        # need to return a class list with the data
+        d = measurements['FINAL'].values.tolist()
+
+        # finally, we need to flatten the results
         flatten_payload = [item for sublist in d for item in sublist]
 
         debug('Payload: {}'.format(flatten_payload))
@@ -66,8 +72,7 @@ class Monasca:
             error("OOps: Something Else: {}".format(err))
             sys.exit(1)
 
-        info(
-            'Measurements sent to Monasca, status code: {}'.format(r.status_code))
+        info('Measurements sent to Monasca, status code: {}'.format(r.status_code))
 
     def payload_measure(self, measure):
         """
